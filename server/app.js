@@ -60,16 +60,14 @@ class Validator {
 class Server {
     constructor() {
         this.API = API_ENDPOINT;
-        this.server = http.createServer(this.requestHandler.bind(this));
+        this.server = http.createServer(this.handleRequest.bind(this));
         db.connect((err) => {
-            if (err) {
-                throw err;
-            }
-            var message = userMessages.MyMessages.connectionSuccessful,
-                version = userMessages.MyMessages.nodeJS + process.versions.node + "\n",
-                response = [message, version].join('\n');
-            res.end(response);
+          if (err) throw err;
+          // Log successful connection
+          console.log(userMessages.MyMessages.connectionSuccessful);
+          console.log(userMessages.MyMessages.nodeJS + process.versions.node);
         });
+        
         db.query(createTableQuery, (err) => {
             if (err) {
                 throw err;
@@ -111,44 +109,53 @@ class Server {
         if (req.method === 'POST' && url.pathname === `/${this.API}`) {
             this.readBody(req).then((body) => {
                 const query = body;
-                if (!validator.isInsertQuery(query)) {
-                    responder.json(400, { error: userMessages.MyMessages.onlyInsertAllowed });
+                if (!query || !validator.isInsertQuery(query)) {
+                    responder.json(400, { ok: false, error: userMessages.MyMessages.onlyInsertAllowed });
                     return;
                 }
                 db.query(query, (err, result) => {
                     if (err) {
-                        responder.json(500, { error: userMessages.MyMessages.insertError });
+                        responder.json(500, { ok: false, error: userMessages.MyMessages.insertError });
                     } else {
-                        responder.json(201, { id: result.insertId });
+                        responder.json(201, { 
+                          ok: true,
+                          affectedRows: result.affectedRows,
+                          insertId: result.insertId });
                     }
                 });
             }).catch((err) => {
-                responder.json(400, { error: 'Invalid JSON' });
+                responder.json(400, { ok: false, error: userMessages.MyMessages.invalidJson });
             });
-        } else if (req.method === 'GET' && url.pathname === `/${this.API}`) {
-            const query = decodeURIComponent(url.pathname.replace(`/${this.API}/select/`, '')).trim();
+        } else if (req.method === 'GET' && url.pathname.startsWith(`/${this.API}/`)) {
+            const query = url.pathname.slice((`/${this.API}/`).length);
             if (!query) {
                 this.readBody(req).then((body) => {
                     if (!body) {
-                        responder.json(400, { error: userMessages.MyMessages.noQueryProvided });
+                        responder.json(400, { ok: false, error: userMessages.MyMessages.noQueryProvided });
                         return;
                     }
                     query = body;
                 });
+                let sql = decodeURIComponent(query);
+                if (sql.startsWith('"') && sql.endsWith('"')) {
+                  sql = sql.slice(1, -1);
+                }
                 if (!validator.isSelectQuery(query)) {
-                    responder.json(400, { error: userMessages.MyMessages.onlySelectAllowed });
+                    responder.json(400, { ok: false, error: userMessages.MyMessages.onlySelectAllowed });
                     return;
                 }
                 db.query(query, (err, results) => {
                     if (err) {
-                        responder.json(500, { error: userMessages.MyMessages.selectError });
+                        responder.json(500, { ok: false, error: userMessages.MyMessages.selectError });
                     } else {
-                        responder.json(200, results);
+                        responder.json(200, { ok: true, rows: results});
                     }
                 });
             } else {
-                responder.json(404, { error: userMessages.MyMessages.NotFound });
+                responder.json(404, { ok: false, error: userMessages.MyMessages.NotFound });
             }
         }
     }
 }
+
+const server = new Server();
