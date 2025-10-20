@@ -62,9 +62,11 @@ class Responder {
 
 /* Validates SQL queries to restrict allowed operations. */
 class Validator {
+    /* Checks if the query is a SELECT statement. */
     static isSelectQuery(query) {
         return /^select\s+/i.test(query.trim());
     }
+    /* Checks if the query is an INSERT statement. */
     static isInsertQuery(query) {
         return /^insert\s+/i.test(query.trim());
     }
