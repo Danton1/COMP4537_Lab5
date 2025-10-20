@@ -109,7 +109,7 @@ class Server {
         if (req.method === 'POST' && url.pathname === `/${this.API}`) {
             this.readBody(req).then((body) => {
                 const query = body;
-                if (!query || !validator.isInsertQuery(query)) {
+                if (!query || !Validator.isInsertQuery(query)) {
                     responder.json(400, { ok: false, error: userMessages.MyMessages.onlyInsertAllowed });
                     return;
                 }
@@ -129,6 +129,7 @@ class Server {
             });
         } else if (req.method === 'GET' && url.pathname.startsWith(`/${this.API}/`)) {
             let query = url.pathname.slice((`/${this.API}/`).length);
+            console.log("Extracted query from URL path:", query);
             if (!query) {
                 const body = await this.readBody(req);
                 if (!body) {
@@ -136,26 +137,27 @@ class Server {
                     return;
                 }
                 query = body.trim();
-                let sql = decodeURIComponent(query);
-                if (sql.startsWith('"') && sql.endsWith('"')) {
-                    sql = sql.slice(1, -1);
-                }
-                if (!validator.isSelectQuery(sql)) {
-                    responder.json(400, { ok: false, error: userMessages.MyMessages.onlySelectAllowed });
-                    return;
-                }
-                db.query(sql, (err, results) => {
-                    if (err) {
-                        responder.json(500, { ok: false, error: userMessages.MyMessages.selectError });
-                    } else {
-                        responder.json(200, { ok: true, rows: results });
-                    }
-                });
-            } else {
-                responder.json(404, { ok: false, error: userMessages.MyMessages.NotFound });
             }
+            let sql = decodeURIComponent(query);
+            if (sql.startsWith('"') && sql.endsWith('"')) {
+                sql = sql.slice(1, -1);
+            }
+            if (!Validator.isSelectQuery(sql)) {
+                responder.json(400, { ok: false, error: userMessages.MyMessages.onlySelectAllowed });
+                return;
+            }
+            db.query(sql, (err, results) => {
+                if (err) {
+                    responder.json(500, { ok: false, error: userMessages.MyMessages.selectError });
+                } else {
+                    responder.json(200, { ok: true, rows: results });
+                }
+            });
+        } else {
+            responder.json(404, { ok: false, error: userMessages.MyMessages.NotFound });
         }
     }
 }
+
 
 const server = new Server();
