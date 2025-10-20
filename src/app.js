@@ -1,5 +1,14 @@
 import { Messages, Config, Defaults, HTMLStrings } from "../lang/en.js";
 
+/* Created by Michael McBride and Danton Soares
+    COMP 4537 Lab 5
+    Fall 2025
+*/
+
+/* Disclaimer: We have used Github Copilot for autocompletion and suggestions.
+We also used ChatGPT to help with bug fixes, error handling and some comments. */
+
+
 /**
  * Utility class for configuration constants and static methods
  */
@@ -136,9 +145,7 @@ class APICaller {
     // GET for SELECT: SQL in the path (encoded, with quotes)
     static async select(sql) {
         const url = SqlEncoder.encodePath(sql);
-        console.log("GET URL:", url);
         const res = await fetch(url, { method: "GET" });
-        console.log("Response status:", res.status);
         return res.json();
     }
 
@@ -156,7 +163,6 @@ class APICaller {
     // Insert default patients
     static async insertDefaults() {
         const sql = SqlEncoder.buildBulkInsert();
-        console.log("Inserting default patients with SQL:", sql);
         return APICaller.insert(sql);
     }
 }

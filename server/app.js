@@ -6,6 +6,10 @@ const PORT = process.env.PORT || 8443;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
 const API_ENDPOINT = process.env.API_ENDPOINT || "COMP4537/labs/5/api/v1/sql";
 
+// Messages for logging (not user facing)
+const SERVERLISTENING = "Server is listening on port";
+const CORS = "CORS allowed for origin: " + ALLOWED_ORIGIN;
+
 /* Created by Michael McBride and Danton Soares
     COMP 4537 Lab 5
     Fall 2025
@@ -92,8 +96,8 @@ class Server {
             }
         });
         this.server.listen(PORT, () => {
-            console.log(`Server listening on port ${PORT}`);
-            console.log('CORS allowed origin: ' + ALLOWED_ORIGIN);
+            console.log(`${SERVERLISTENING} ${PORT}`);
+            console.log(CORS);
         });
     }
     /* Reads the body of the request. */
@@ -145,7 +149,6 @@ class Server {
             });
         } else if (req.method === 'GET' && url.pathname.startsWith(`/${this.API}/`)) {
             let query = url.pathname.slice((`/${this.API}/`).length);
-            console.log("Extracted query from URL path:", query);
             if (!query) {
                 const body = await this.readBody(req);
                 if (!body) {
