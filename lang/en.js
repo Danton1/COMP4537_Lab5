@@ -4,8 +4,26 @@ const Messages = {
     title: "COMP4537 – Lab 5 (Server1)",
     onlyTwo: 'Only SELECT or INSERT queries are allowed.',
     empty: 'Please type a SQL query in the textarea.',
-    clientError: 'Client error:'
+    clientError: 'Client error:',
+    noResponse: "No response received.",
+    unknownError: "An unknown error occurred.",
+    successful: "✅ Query executed successfully.",
+    NA: "N/A",
+    noRows: "ℹ️ No rows found.",
+    error: "❌ Error:",
+    rowsAffected: "Rows affected:",
+    insertID: "Insert ID:"
 }
+
+const HTMLStrings = {
+    tableStart: `<table class="response-table">
+            <tr><th>ID</th><th>Full Name</th><th>Date of Birth</th></tr>`,
+    rowStart: `<tr><td>`,
+    rowEnd: `</td></tr>`,
+    rowMid: `</td><td>`,
+    tableEnd: `</table>`,
+    br: `<br/>`
+};
 
 const Config = {
     API_BASE: "https://www.mickmcb.com/COMP4537/labs/5",
@@ -24,4 +42,4 @@ const Defaults = {
     ]
 };
   
-export { Messages, Config, Defaults };
+export { Messages, Config, Defaults, HTMLStrings };

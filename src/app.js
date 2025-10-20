@@ -1,4 +1,4 @@
-import { Messages, Config, Defaults } from "../lang/en.js";
+import { Messages, Config, Defaults, HTMLStrings } from "../lang/en.js";
 
 /**
  * Utility class for configuration constants and static methods
@@ -21,6 +21,9 @@ class CONFIG {
     static COL_NAME = Defaults.columnName;
     static COL_DOB  = Defaults.columnDob;
     static PATIENTS = Defaults.patients;
+
+    // Toggle pretty formatting for responses
+    static prettyFormat = true;
 }
 
 /**
@@ -51,11 +54,54 @@ class UI {
     }
 
     showMessage(msg) {
+        const output = Formatter.formatResponse(msg);
         this.responseField.style.display = 'block';
+        if (CONFIG.prettyFormat){
+            this.responseParagraph.innerHTML = output;
+            return;
+        }
         this.responseParagraph.innerText = (typeof msg === 'string')
         ? msg
         : JSON.stringify(msg, null, 2);
     }
+}
+
+/**
+ * 
+ */
+class Formatter {
+    static formatResponse(data) {
+        if (!data) return Messages.noResponse;
+      
+        // Error / status only
+        if (data.ok === false) {
+          return `${Messages.error} ${data.error || data.message || Messages.unknownError}`;
+        }
+      
+        // INSERT or UPDATE summary
+        if (data.affectedRows !== undefined) {
+          return `${Messages.successful}${HTMLStrings.br}
+        ${Messages.rowsAffected} ${data.affectedRows}${HTMLStrings.br}
+        ${Messages.insertID} ${data.insertId ?? Messages.NA}`;
+        }
+      
+        // SELECT table output
+        if (Array.isArray(data.rows)) {
+          if (data.rows.length === 0) return Messages.noRows;
+      
+          // Build a little table of patients
+          let html = HTMLStrings.tableStart;
+          for (const r of data.rows) {
+            const dob = new Date(r.date_of_birth).toISOString().split("T")[0];
+            html += `${HTMLStrings.rowStart}${r.patientid}${HTMLStrings.rowMid}${r.full_name}${HTMLStrings.rowMid}${dob}${HTMLStrings.rowEnd}`;
+          }
+          html += HTMLStrings.tableEnd;
+          return html;
+        }
+      
+        // Fallback for anything else
+        return JSON.stringify(data, null, 2);
+      }
 }
 
 /**

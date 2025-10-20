@@ -82,3 +82,19 @@ main{
     max-width: 80%;
     display: none;
 }
+
+.response-table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 8px;
+}
+.response-table th,
+.response-table td {
+    border: 1px solid #ccc;
+    padding: 6px 10px;
+    text-align: left;
+}
+
+.response-table th {
+    background-color: #f5f5f5;
+}
