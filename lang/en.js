@@ -12,7 +12,10 @@ const Messages = {
     noRows: "ℹ️ No rows found.",
     error: "❌ Error:",
     rowsAffected: "Rows affected:",
-    insertID: "Insert ID:"
+    insertID: "Insert ID:",
+    prettyLabel: "Formatter",
+    prettyOn: "On",
+    prettyOff: "Off"
 }
 
 const HTMLStrings = {

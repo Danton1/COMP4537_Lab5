@@ -37,12 +37,21 @@ class UI {
         this.title = document.getElementById("title");
         this.responseField = document.getElementById("responseArea");
         this.responseParagraph = document.getElementById("response");
+        this.prettyToggle = document.getElementById("prettyToggle");
+        this.prettyLabel  = document.getElementById("prettyLabel");
+        this.prettyState  = document.getElementById("prettyState");
+        this.lastData = null; // buffer the last response to re-render on toggle
         this.setInnerText();
     }
     setInnerText(){
         this.postButton.innerText = Messages.post;
         this.defaultButton.innerText = Messages.default;
         this.title.innerText = Messages.title;
+
+        // Toggle UI text & initial state from Messages/CONFIG
+        this.prettyLabel.innerText = Messages.prettyLabel;
+        this.prettyToggle.checked = CONFIG.prettyFormat;
+        this.prettyState.innerText = CONFIG.prettyFormat ? Messages.prettyOn : Messages.prettyOff;
     }
 
     getSQL(){
@@ -58,12 +67,28 @@ class UI {
         this.responseField.style.display = 'block';
         if (CONFIG.prettyFormat){
             this.responseParagraph.innerHTML = output;
+            this.lastData = msg;
             return;
         }
         this.responseParagraph.innerText = (typeof msg === 'string')
         ? msg
         : JSON.stringify(msg, null, 2);
+        this.lastData = msg;
     }
+
+    showFormatted(obj){
+        // Force pretty rendering regardless of current state
+        this.responseField.style.display = 'block';
+        this.responseParagraph.innerHTML = Formatter.formatResponse(obj);
+        this.lastData = obj;
+    }
+    
+    refresh(){
+        // Re-render the last response when the toggle flips
+        if (this.lastData == null) return;
+        this.showMessage(this.lastData);
+    }
+
 }
 
 /**
@@ -183,6 +208,12 @@ class Listener {
         this.addEventListeners();
     }
     addEventListeners(){
+        // Toggle pretty/plain output
+        this.ui.prettyToggle.addEventListener("change", () => {
+          CONFIG.prettyFormat = this.ui.prettyToggle.checked;
+          this.ui.prettyState.innerText = CONFIG.prettyFormat ? Messages.prettyOn : Messages.prettyOff;
+          this.ui.refresh();
+        });
         this.ui.defaultButton.addEventListener("click", async () => {
             try {
                 this.ui.showMessage(await APICaller.insertDefaults());
