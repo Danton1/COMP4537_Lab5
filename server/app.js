@@ -4,12 +4,12 @@ const { URL } = require('url');
 const userMessages = require('./lang/en/en.js');
 const PORT = process.env.PORT || 8443;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
-const API_ENDPOINT = process.env.API_ENDPOINT || "api/v1/sql";
+const API_ENDPOINT = process.env.API_ENDPOINT || "/COMP4537/labs/5/api/v1/sql";
 
 const db = mysql.createConnection({
     host: 'localhost',
-    user: 'mickmcbc_client',
-    password: 'Jambalaya2025',
+    user: 'mickmcbc_admin',
+    password: 'Stroganoff2025',
     database: 'mickmcbc_comp4537_lab5'
 });
 
@@ -62,12 +62,12 @@ class Server {
         this.API = API_ENDPOINT;
         this.server = http.createServer(this.handleRequest.bind(this));
         db.connect((err) => {
-          if (err) throw err;
-          // Log successful connection
-          console.log(userMessages.MyMessages.connectionSuccessful);
-          console.log(userMessages.MyMessages.nodeJS + process.versions.node);
+            if (err) throw err;
+            // Log successful connection
+            console.log(userMessages.MyMessages.connectionSuccessful);
+            console.log(userMessages.MyMessages.nodeJS + process.versions.node);
         });
-        
+
         db.query(createTableQuery, (err) => {
             if (err) {
                 throw err;
@@ -117,17 +117,18 @@ class Server {
                     if (err) {
                         responder.json(500, { ok: false, error: userMessages.MyMessages.insertError });
                     } else {
-                        responder.json(201, { 
-                          ok: true,
-                          affectedRows: result.affectedRows,
-                          insertId: result.insertId });
+                        responder.json(201, {
+                            ok: true,
+                            affectedRows: result.affectedRows,
+                            insertId: result.insertId
+                        });
                     }
                 });
             }).catch((err) => {
                 responder.json(400, { ok: false, error: userMessages.MyMessages.invalidJson });
             });
         } else if (req.method === 'GET' && url.pathname.startsWith(`/${this.API}/`)) {
-            const query = url.pathname.slice((`/${this.API}/`).length);
+            let query = url.pathname.slice((`/${this.API}/`).length);
             if (!query) {
                 this.readBody(req).then((body) => {
                     if (!body) {
@@ -138,7 +139,7 @@ class Server {
                 });
                 let sql = decodeURIComponent(query);
                 if (sql.startsWith('"') && sql.endsWith('"')) {
-                  sql = sql.slice(1, -1);
+                    sql = sql.slice(1, -1);
                 }
                 if (!validator.isSelectQuery(query)) {
                     responder.json(400, { ok: false, error: userMessages.MyMessages.onlySelectAllowed });
@@ -148,7 +149,7 @@ class Server {
                     if (err) {
                         responder.json(500, { ok: false, error: userMessages.MyMessages.selectError });
                     } else {
-                        responder.json(200, { ok: true, rows: results});
+                        responder.json(200, { ok: true, rows: results });
                     }
                 });
             } else {
