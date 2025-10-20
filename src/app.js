@@ -65,7 +65,9 @@ class APICaller {
     // GET for SELECT: SQL in the path (encoded, with quotes)
     static async select(sql) {
         const url = SqlEncoder.encodePath(sql);
+        console.log("GET URL:", url);
         const res = await fetch(url, { method: "GET" });
+        console.log("Response status:", res.status);
         return res.json();
     }
 
@@ -83,6 +85,7 @@ class APICaller {
     // Insert default patients
     static async insertDefaults() {
         const sql = SqlEncoder.buildBulkInsert();
+        console.log("Inserting default patients with SQL:", sql);
         return APICaller.insert(sql);
     }
 }

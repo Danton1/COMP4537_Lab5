@@ -129,18 +129,13 @@ class Server {
         } else if (req.method === 'GET' && url.pathname.startsWith(`/${this.API}/`)) {
             const query = url.pathname.slice((`/${this.API}/`).length);
             if (!query) {
-                this.readBody(req).then((body) => {
-                    if (!body) {
-                        responder.json(400, { ok: false, error: userMessages.MyMessages.noQueryProvided });
-                        return;
-                    }
-                    query = body;
+                responder.json(400, { ok: false, error: userMessages.MyMessages.noQueryProvided
                 });
                 let sql = decodeURIComponent(query);
                 if (sql.startsWith('"') && sql.endsWith('"')) {
                   sql = sql.slice(1, -1);
                 }
-                if (!validator.isSelectQuery(query)) {
+                if (!validator.isSelectQuery(sql)) {
                     responder.json(400, { ok: false, error: userMessages.MyMessages.onlySelectAllowed });
                     return;
                 }
