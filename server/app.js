@@ -1,10 +1,10 @@
 const http = require('http');
-const mysql = require('mysql2');
+const mysql = require('mysql');
 const { URL } = require('url');
-const userMessages = require('./lang/en.js');
+const userMessages = require('./lang/en/en.js');
 const PORT = process.env.PORT || 8443;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
-const API_ENDPOINT = process.env.API_ENDPOINT || "/COMP4537/labs/5/api/v1/sql";
+const API_ENDPOINT = process.env.API_ENDPOINT || "COMP4537/labs/5/api/v1/sql";
 
 const db = mysql.createConnection({
     host: 'localhost',
@@ -96,7 +96,7 @@ class Server {
         });
     }
 
-    handleRequest(req, res) {
+    async handleRequest(req, res) {
         const responder = new Responder(res, ALLOWED_ORIGIN);
         const validator = new Validator();
 
@@ -130,8 +130,12 @@ class Server {
         } else if (req.method === 'GET' && url.pathname.startsWith(`/${this.API}/`)) {
             let query = url.pathname.slice((`/${this.API}/`).length);
             if (!query) {
-                responder.json(400, { ok: false, error: userMessages.MyMessages.noQueryProvided
-                });
+                const body = await this.readBody(req);
+                if (!body) {
+                    responder.json(400, { ok: false, error: userMessages.MyMessages.noQueryProvided });
+                    return;
+                }
+                query = body.trim();
                 let sql = decodeURIComponent(query);
                 if (sql.startsWith('"') && sql.endsWith('"')) {
                     sql = sql.slice(1, -1);
@@ -140,7 +144,7 @@ class Server {
                     responder.json(400, { ok: false, error: userMessages.MyMessages.onlySelectAllowed });
                     return;
                 }
-                db.query(query, (err, results) => {
+                db.query(sql, (err, results) => {
                     if (err) {
                         responder.json(500, { ok: false, error: userMessages.MyMessages.selectError });
                     } else {
