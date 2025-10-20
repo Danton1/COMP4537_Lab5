@@ -1,7 +1,7 @@
 const http = require('http');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const { URL } = require('url');
-const userMessages = require('./lang/en/en.js');
+const userMessages = require('./lang/en.js');
 const PORT = process.env.PORT || 8443;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
 const API_ENDPOINT = process.env.API_ENDPOINT || "/COMP4537/labs/5/api/v1/sql";
@@ -130,18 +130,13 @@ class Server {
         } else if (req.method === 'GET' && url.pathname.startsWith(`/${this.API}/`)) {
             let query = url.pathname.slice((`/${this.API}/`).length);
             if (!query) {
-                this.readBody(req).then((body) => {
-                    if (!body) {
-                        responder.json(400, { ok: false, error: userMessages.MyMessages.noQueryProvided });
-                        return;
-                    }
-                    query = body;
+                responder.json(400, { ok: false, error: userMessages.MyMessages.noQueryProvided
                 });
                 let sql = decodeURIComponent(query);
                 if (sql.startsWith('"') && sql.endsWith('"')) {
                     sql = sql.slice(1, -1);
                 }
-                if (!validator.isSelectQuery(query)) {
+                if (!validator.isSelectQuery(sql)) {
                     responder.json(400, { ok: false, error: userMessages.MyMessages.onlySelectAllowed });
                     return;
                 }

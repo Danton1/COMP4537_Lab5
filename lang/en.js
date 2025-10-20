@@ -4,11 +4,12 @@ const Messages = {
     title: "COMP4537 – Lab 5 (Server1)",
     onlyTwo: 'Only SELECT or INSERT queries are allowed.',
     empty: 'Please type a SQL query in the textarea.',
+    clientError: 'Client error:'
 }
 
 const Config = {
-    API_BASE: "https://server2",
-    SQL_PATH: "/api/v1/sql"                    
+    API_BASE: "https://www.mickmcb.com/COMP4537/labs/5",
+    SQL_PATH: "/api/v1/sql"
 };
   
 const Defaults = {
