@@ -136,23 +136,23 @@ class Listener {
     addEventListeners(){
         this.ui.defaultButton.addEventListener("click", async () => {
             try {
-                this.ui.show(await APICaller.insertDefaults());
+                this.ui.showMessage(await APICaller.insertDefaults());
             } catch (e) {
-                this.ui.show(`Client error: ${e?.message || e}`);
+                this.ui.showMessage(`${Messages.clientError} ${e?.message || e}`);
             }
         });
         this.ui.postButton.addEventListener("click", async () => {
             const sql = this.ui.getSQL();
             if (!sql.trim()) {
-                this.ui.show(Messages.empty); return;
+                this.ui.showMessage(Messages.empty); return;
             }
             const m = Validator.classify(sql);
             try {
-                if (m === "GET")  this.ui.show(await APICaller.select(sql));
-                else if (m === "POST") this.ui.show(await APICaller.insert(sql));
-                else this.ui.show(Messages.onlyTwo);
+                if (m === "GET")  this.ui.showMessage(await APICaller.select(sql));
+                else if (m === "POST") this.ui.showMessage(await APICaller.insert(sql));
+                else this.ui.showMessage(Messages.onlyTwo);
             } catch (e) {
-                this.ui.show(`Client error: ${e?.message || e}`);
+                this.ui.showMessage(`Client error: ${e?.message || e}`);
             }
         });
     }

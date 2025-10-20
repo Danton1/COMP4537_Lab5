@@ -4,6 +4,7 @@ const Messages = {
     title: "COMP4537 – Lab 5 (Server1)",
     onlyTwo: 'Only SELECT or INSERT queries are allowed.',
     empty: 'Please type a SQL query in the textarea.',
+    clientError: 'Client error:'
 }
 
 const Config = {
