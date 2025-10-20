@@ -1,5 +1,5 @@
 const http = require('http');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const { URL } = require('url');
 const userMessages = require('./lang/en/en.js');
 const PORT = process.env.PORT || 8443;
@@ -8,8 +8,8 @@ const API_ENDPOINT = process.env.API_ENDPOINT || "COMP4537/labs/5/api/v1/sql";
 
 const db = mysql.createConnection({
     host: 'localhost',
-    user: 'mickmcbc_admin',
-    password: 'Stroganoff2025',
+    user: 'mickmcbc_client',
+    password: 'Jambalaya2025',
     database: 'mickmcbc_comp4537_lab5'
 });
 
@@ -105,56 +105,50 @@ class Server {
             return;
         }
         const url = new URL(req.url, `http://${req.headers.host}`);
+        console.log('[REQ]', req.method, url.pathname);
 
-        if (req.method === 'POST' && url.pathname === `/${this.API}`) {
-            this.readBody(req).then((body) => {
-                const query = body;
-                if (!query || !validator.isInsertQuery(query)) {
-                    responder.json(400, { ok: false, error: userMessages.MyMessages.onlyInsertAllowed });
-                    return;
+        if (req.method === 'POST' && (url.pathname === `/${this.API}` || url.pathname === `/${this.API}/`)) {
+            try {
+                const body = (await this.readBody(req)).trim();
+                console.log('[SQL][POST]', body.slice(0, 120));
+                if (!body || !validator.isInsertQuery(body)) {
+                    return responder.json(400, { ok: false, error: userMessages.MyMessages.onlyInsertAllowed });
                 }
-                db.query(query, (err, result) => {
-                    if (err) {
-                        responder.json(500, { ok: false, error: userMessages.MyMessages.insertError });
-                    } else {
-                        responder.json(201, {
-                            ok: true,
-                            affectedRows: result.affectedRows,
-                            insertId: result.insertId
-                        });
-                    }
+                db.query(body, (err, result) => {
+                    if (err) return responder.json(500, { ok: false, error: userMessages.MyMessages.insertError });
+                    responder.json(201, { ok: true, affectedRows: result.affectedRows, insertId: result.insertId });
                 });
-            }).catch((err) => {
+            } catch (e) {
                 responder.json(400, { ok: false, error: userMessages.MyMessages.invalidJson });
-            });
-        } else if (req.method === 'GET' && url.pathname.startsWith(`/${this.API}/`)) {
-            let query = url.pathname.slice((`/${this.API}/`).length);
-            if (!query) {
-                const body = await this.readBody(req);
-                if (!body) {
-                    responder.json(400, { ok: false, error: userMessages.MyMessages.noQueryProvided });
-                    return;
-                }
-                query = body.trim();
-                let sql = decodeURIComponent(query);
-                if (sql.startsWith('"') && sql.endsWith('"')) {
-                    sql = sql.slice(1, -1);
-                }
-                if (!validator.isSelectQuery(sql)) {
-                    responder.json(400, { ok: false, error: userMessages.MyMessages.onlySelectAllowed });
-                    return;
-                }
-                db.query(sql, (err, results) => {
-                    if (err) {
-                        responder.json(500, { ok: false, error: userMessages.MyMessages.selectError });
-                    } else {
-                        responder.json(200, { ok: true, rows: results });
-                    }
-                });
-            } else {
-                responder.json(404, { ok: false, error: userMessages.MyMessages.NotFound });
+                console.error(e);
             }
-        }
+            return;
+          }
+          if (req.method === 'GET' && url.pathname.startsWith(`/${this.API}/`)) {
+              let query = url.pathname.slice((`/${this.API}/`).length);
+              if (!query) {
+                  return responder.json(400, { ok: false, error: userMessages.MyMessages.noQueryProvided });
+              }
+              let sql = decodeURIComponent(query);
+              if (sql.startsWith('"') && sql.endsWith('"')) {
+                  sql = sql.slice(1, -1);
+              }
+              console.log('[SQL][GET]', sql.slice(0, 120));
+              if (!validator.isSelectQuery(sql)) {
+                  return responder.json(400, { ok: false, error: userMessages.MyMessages.onlySelectAllowed });
+              }
+              db.query(sql, (err, results) => {
+                  if (err) {
+                      responder.json(500, { ok: false, error: userMessages.MyMessages.selectError });
+                  } else {
+                      responder.json(200, { ok: true, rows: results });
+                  }
+              });
+              return;
+            } 
+            
+            return responder.json(404, { ok: false, error: userMessages.MyMessages.NotFound });
+  
     }
 }
 
