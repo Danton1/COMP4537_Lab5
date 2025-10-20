@@ -1,7 +1,7 @@
 const http = require('http');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const { URL } = require('url');
-const userMessages = require('./lang/en/en.js');
+const userMessages = require('./lang/en.js');
 const PORT = process.env.PORT || 8443;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
 const API_ENDPOINT = process.env.API_ENDPOINT || "api/v1/sql";
