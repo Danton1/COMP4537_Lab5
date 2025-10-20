@@ -6,6 +6,14 @@ const PORT = process.env.PORT || 8443;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
 const API_ENDPOINT = process.env.API_ENDPOINT || "COMP4537/labs/5/api/v1/sql";
 
+/* Created by Michael McBride and Danton Soares
+    COMP 4537 Lab 5
+    Fall 2025
+*/
+
+/* Disclaimer: We have used Github Copilot for autocompletion and suggestions. We also used ChatGPT to help with bug fixes and error handling. */
+
+/* Database connection setup */
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'mickmcbc_admin',
@@ -13,6 +21,7 @@ const db = mysql.createConnection({
     database: 'mickmcbc_comp4537_lab5'
 });
 
+/* SQL to create patient table if it doesn't exist */
 const createTableQuery = `
 CREATE TABLE IF NOT EXISTS patient (
     patientid INT AUTO_INCREMENT PRIMARY KEY,
@@ -27,6 +36,7 @@ class Responder {
         this.res = res;
         this.allowedOrigin = allowedOrigin;
     }
+    /* Generates CORS headers. */
     cors(extra = {}) {
         return {
             'Access-Control-Allow-Origin': this.allowedOrigin,
@@ -35,6 +45,7 @@ class Responder {
             ...extra,
         };
     }
+    /* Sends a JSON response with CORS headers. */
     json(status, payload) {
         this.res.writeHead(status, {
             'Content-Type': 'application/json; charset=utf-8',
@@ -42,12 +53,14 @@ class Responder {
         });
         this.res.end(JSON.stringify(payload));
     }
+    /* Sends a 204 No Content response with CORS headers. */
     noContent() {
         this.res.writeHead(204, this.cors({ 'Access-Control-Max-Age': '600' }));
         this.res.end();
     }
 }
 
+/* Validates SQL queries to restrict allowed operations. */
 class Validator {
     static isSelectQuery(query) {
         return /^select\s+/i.test(query.trim());
@@ -57,6 +70,7 @@ class Validator {
     }
 }
 
+/* Main server class handling requests and database interactions. */
 class Server {
     constructor() {
         this.API = API_ENDPOINT;
@@ -80,7 +94,7 @@ class Server {
             console.log('CORS allowed origin: ' + ALLOWED_ORIGIN);
         });
     }
-
+    /* Reads the body of the request. */
     async readBody(req) {
         return new Promise((resolve, reject) => {
             let body = '';
@@ -95,7 +109,7 @@ class Server {
             });
         });
     }
-
+    /* Handles incoming HTTP requests. */
     async handleRequest(req, res) {
         const responder = new Responder(res, ALLOWED_ORIGIN);
         const validator = new Validator();
